@@ -13,4 +13,3 @@ dict_3 = {'AUD': 19.2, 'name': 'Tom'}
 
 new_dict = {**dict_1, **dict_2, **dict_3}
 print(new_dict)
-exit()

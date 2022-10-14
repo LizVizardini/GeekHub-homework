@@ -10,4 +10,3 @@
 
 lst = [(), ('hey'), ('',), ('ma', 'ke', 'my'), [''], {}, ['d', 'a', 'y'], '', []]
 print(list(filter(bool, lst)))
-exit()

@@ -14,4 +14,3 @@ mydict = {}
 for i in range(n+1):
     mydict[i] = i*i
 print(mydict)
-exit()

@@ -7,8 +7,9 @@
 #TASK 6
 #Write a script to get the maximum and minimum VALUE in a dictionary.
 
-import random
+
 from random import randrange
+
 
 def random_dict():
     mydict = {}
@@ -17,8 +18,8 @@ def random_dict():
         mydict['key' + str(i)] = randrange(100)
     return mydict
 
+
 r_dict = random_dict()
 print(f'Here is the dictionary:\n{r_dict}\n')
 print(f'The maximum value is: {r_dict[max(r_dict, key = r_dict.get)]}')
 print(f'The minimum value is: {r_dict[min(r_dict, key = r_dict.get)]}')
-exit()

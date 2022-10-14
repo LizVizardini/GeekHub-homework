@@ -9,10 +9,12 @@
 #The list of tuples can be hard coded. The "replacement" value is entered by the user.
 #The number of elements in the tuples must be different.
 
-lst = [(1, 2, 3), (4, 5, 6, 7, 8, 9, 0), (4, 2, 3, 1), (6, 7)]
+lst = [(1, 2, 3), (4, 5, 6, 7, 8, 9, 0), (4, 2, 3, 1), (6, 7), ()]
 new_lst = []
 repl_value = int(input('Please enter any value: '))
 for i in lst:
-    new_lst.append(i[:-1] + (repl_value,))
+    if len(i) != 0:
+        new_lst.append(i[:-1] + (repl_value,))
+    else:
+        new_lst.append(i)
 print(new_lst)
-exit()

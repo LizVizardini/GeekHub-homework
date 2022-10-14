@@ -15,4 +15,3 @@ dict_3 = {'AUD': 19.2, 'name': 'Tom'}
 dict_1.update(dict_2)
 dict_1.update(dict_3)
 print(dict_1)
-exit()

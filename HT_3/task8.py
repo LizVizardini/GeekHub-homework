@@ -10,6 +10,5 @@
 
 n = int(input('Please enter any integer: '))
 for i in range (n):
-    if i%17 == 0:
+    if i % 17 == 0:
         print(i)
-exit()
