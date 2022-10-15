@@ -11,9 +11,9 @@
 
 lst = [(1, 2, 3), (4, 5, 6, 7, 8, 9, 0), (4, 2, 3, 1), (6, 7), ()]
 new_lst = []
-repl_value = int(input('Please enter any value: '))
+repl_value = input('Please enter any value: ')
 for i in lst:
-    if len(i) != 0:
+    if i:
         new_lst.append(i[:-1] + (repl_value,))
     else:
         new_lst.append(i)
