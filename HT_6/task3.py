@@ -18,42 +18,39 @@
       Status: OK
    P.S. Не забудьте використати блок try/except ;)
 """
-
-
-class LoginException(Exception):
-    ...
-
-
-def list_validation():
-    # a)
     
     
     import random
     import string
     
     
+class LoginException(Exception):
+    ...
+
+
+def list_validation():
+    # a)
     lst = [['Quincy100'], ['Wi'], ['Ellalalalalalalalalalalalalalalalalalallalalalala^_^'], ['Ro55'], ['Tilni#1']]
     for i in range (len(lst)):
         lst[i].append(''.join((random.choice(string.ascii_letters + string.digits) for i in range(random.randint(5, 15)))))
     # б)
-    for i in range (len(lst)):
-        print(f'Name: {lst[i][0]}\nPassword: {lst[i][1]}\n\nStatus:')
+    for i in lst:
+        print(f'Name: {i[0]}\nPassword: {i[1]}\n\nStatus:')
         try:
-            if len(lst[i][0]) < 3 or len(lst[i][0]) > 50:
+            if len(i[0]) < 3 or len(i[0]) > 50:
                 raise LoginException('The username must include from 3 to 50 symbols')
-            if len(lst[i][1]) < 8 or all(not char.isdigit() for char in lst[i][1]):
+            if len(i[1]) < 8 or all(not char.isdigit() for char in i[1]):
                 raise LoginException('The password must include 8 symbols or more and at least 1 of them must be a number')
-            if lst[i][0] == lst[i][1]:
+            if i[0] == i[1]:
                 raise LoginException('The password and the username could not be equal')
-            if ' ' in lst[i][1]:
+            if ' ' in i[1]:
                 raise LoginException('The password could not includ space')
             else:
                 print('OK')
         except LoginException as le:
             print(le)
         print('------------------------------------------------------------------------------------')
-        if i == len(lst) - 1:
-            print('THAT`S ALL USERS')
+    print('THAT`S ALL USERS')
         
 
 list_validation()

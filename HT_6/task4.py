@@ -27,10 +27,10 @@ def morse_code(your_string):
     lst = your_string.split('   ')
     lst = [item.split() for item in lst]
     result = ''
-    for i in range (len(lst)):
-        for j in range (len(lst[i])):
-            result += list(morse_dict.keys())[list(morse_dict.values()).index(lst[i][j])]
-        if i != len(lst) - 1:
+    for i in lst:
+        for j in i:
+            result += list(morse_dict.keys())[list(morse_dict.values()).index(j)]
+        if i != lst[-1]:
             result += ' '
     return result
 
