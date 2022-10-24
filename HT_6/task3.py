@@ -26,6 +26,12 @@ class LoginException(Exception):
 
 def list_validation():
     # a)
+    
+    
+    import random
+    import string
+    
+    
     lst = [['Quincy100'], ['Wi'], ['Ellalalalalalalalalalalalalalalalalalallalalalala^_^'], ['Ro55'], ['Tilni#1']]
     for i in range (len(lst)):
         lst[i].append(''.join((random.choice(string.ascii_letters + string.digits) for i in range(random.randint(5, 15)))))

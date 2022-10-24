@@ -24,7 +24,7 @@ def passwords_base(username, password, silent = False):
     for i in lst:
         if [username, password] in lst:
             return True
-        elif silent == True:
+        elif silent:
             return False
         else:
             raise LoginException('Incorrect username or password')

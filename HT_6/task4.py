@@ -33,4 +33,9 @@ def morse_code(your_string):
         if i != len(lst) - 1:
             result += ' '
     return result
-morse_code('.... . .-.. .-.. ---   .-- --- .-. .-.. -..')
+
+
+try:
+    print(morse_code(input('Pls enter smth coded in Morse using ".", "-" (" " between letters and "   " between words)')))
+except ValueError:
+    print('Incorrect input. Try again :)')
