@@ -24,7 +24,6 @@ def my_generator(sequence):
     while True:
         for i in sequence:
             yield i
-        sequence += sequence
 
         
 for elem in my_generator([1, 2, 3]):

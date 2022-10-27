@@ -40,7 +40,7 @@ def my_range(start, end = False, step = False):
     start = int(start)
     end = int(end)
     step = int(step)
-    while start < end:
+    while start != end:
             yield start
             start += step
         
