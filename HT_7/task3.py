@@ -16,7 +16,7 @@
    P.S. Повинен вертатись генератор.
    P.P.S. Для повного розуміння цієї функції - можна почитати документацію по ній:
    https://docs.python.org/3/library/stdtypes.html#range
-   P.P.P.S Не забудьте обробляти невалідні ситуації (типу range(1, -10, 5) тощо).
+   P.P.P.S Не забудьте обробляти невалідні ситуації (типу range(1, 10, 5) тощо).
    Подивіться як веде себе стандартний range в таких випадках."""
 
 
@@ -40,7 +40,12 @@ def my_range(start, end = False, step = False):
     start = int(start)
     end = int(end)
     step = int(step)
-    while start != end:
+    if start <= end:
+        while start < end:
+            yield start
+            start += step
+    else:
+        while start > end:
             yield start
             start += step
         
@@ -63,8 +68,8 @@ for i in my_range(0, 16, 1):
     lst.append(i)
 print(lst)
 
-print('\nInvalid situations:')
+print('\nInvalid situation:')
 lst = []
-for i in my_range(1, -10, 5):
+for i in my_range(10, 2, -1):
     lst.append(i)
 print(lst)
