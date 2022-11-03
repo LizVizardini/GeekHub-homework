@@ -6,43 +6,54 @@
 Не забудьте додати перевірку чи файл існує."""
 
 
-def func(name, n):
-    n = int(n)
+def func(n, name = 'text.txt'):
+    while True:
+        try:
+            n = abs(int(n))
+            break
+        except ValueError:
+            n = input('Are you sure that you have entered an integer number? Try again: ')
     try:
-        file = open(str(name), "r")
-        data = file.read()
-        if len(data) < n:
-            n = len(data) // 3
-            if n == 0:
-                n = 1
+        file = open(str(name), "r+")
         file.seek(0)
-        lst = [file.read(n)]
-        if '\ufeff' in lst[0]:
-            lst[0] = lst[0].replace('\ufeff', '')
-        if len(data) == 2:
-            if n >= 2:
-                file.seek(0)
-                lst.append(file.read())
+        data = file.read()
+        print(len(data))
+        if '\ufeff' in data:
+            data = data.replace('\ufeff', '')
+        if (len(data) < 3) & (n != 0):
+            answer = input('Not enough symbols in the file. If u want to add smth to file, type it here, if not - leave this field empty.')
+            if answer:
+                data += answer
+                file.truncate(0)
+                file.write(data)
             else:
-                lst.append('')
-        elif len(data) > 2:
-            file.seek((len(data) - n) // 2 + 1)
-            lst.append(file.read(n))
-        file.seek(len(data) - n)
-        lst.append(file.read(n))
+                lst = []
+                return lst
+        if n > len(data):
+            print('Error. Maximum number of symbols -', len(data))
+            lst = []
+        if n == 0:
+            lst = []
+        if n == len(data):
+            lst = [data, data, data]
+        if n < len(data):
+            lst = [data[:n], data[(len(data) - n) // 2 : (len(data) + n) // 2], data[-n:]]    
         return lst
     except FileNotFoundError:
         if '.' not in name:
-            return 'You`ve fogot to write the file extension. Write my name again without forgetting `.extension`'
+            return 'You`ve fogot to write the file extension. Write the file name again without forgetting `.extension`'
         else:
             return 'The file name is incorrect. Please check it and try again.'
 
 
 name = input('Please enter the file name including the extension: ')
 n = input('Please enter the number of the symbols: ')
-
-if type(func(name, n)) == list:
-    for i in func(name, n):
-        print('\n', i)
+if name:
+    result = func(n, name)
 else:
-    print(func(name, n))
+    result = func(n)
+if type(result) == list:
+    for i in result:
+        print('\n\n', i)
+else:
+    print(result)

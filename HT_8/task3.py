@@ -77,6 +77,10 @@ def operation(username):
     oper = input('How many? ')
     try:
         if oper:
+            if '-' in oper:
+                oper = oper.replace('-', '')
+                if '-' not in earn_or_spend:
+                    earn_or_spend += '-'
             if '.' in oper:
                 oper = float(oper.split('.')[0]) + round(float(oper.split('.')[1]) / (10 ** len(oper.split('.')[1])), 2)
             else:
@@ -95,6 +99,8 @@ def operation(username):
         oper = 0
     balance(username, oper)
     transactions_history(username, oper)
+    if oper != 0:
+        print('Operation successful!')
 
     
 def log_in():
@@ -123,7 +129,6 @@ def start():
                 print('Your balance: ', balance(username))
             if '2' in action:
                 operation(username)
-                print('Operation successful!')
             if ('1' not in action) & ('2' not in action) & ('3' not in action):
                 print('Incorrect input. Please choose option 1, 2 or 3.')
             if '3' in action:
