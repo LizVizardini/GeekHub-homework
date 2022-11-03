@@ -74,6 +74,14 @@ def transactions_history(username, changes = 0):
     
 def operation(username):
     earn_or_spend = input('Enter `+` if you want to deposit money on the card or `-` if you want to withdraw money: ')
+    permsChar = '+-'
+    for ch in earn_or_spend:
+        if ch not in permsChar:
+            return print('You can enter only + or -')
+    if ('+' in earn_or_spend) & ('-' in earn_or_spend):
+        return print('You have to choose only 1 operation: + or -')
+    if not earn_or_spend:
+        return print('You didn`t choose the operation. Try again :(')
     oper = input('How many? ')
     try:
         if oper:
