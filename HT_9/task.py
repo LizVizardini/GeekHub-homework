@@ -40,7 +40,7 @@ conn.execute('''CREATE TABLE IF NOT EXISTS ACCOUNTS
                 BALANCE FLOAT NOT NULL
                 )''')
 conn.execute("INSERT OR IGNORE INTO ACCOUNTS VALUES ('admin', 'admin', 0.00)")
-
+cur_lst = [10, 20, 50, 100, 200, 500, 1000]
 
 def users():
     users_passwords_balance_list = []
@@ -135,7 +135,7 @@ def balance(username, changes=0):
     return result
 
 
-def transactions_history(username, changes=0):
+def transactions_history(username, changes = 0):
     conn.execute('''CREATE TABLE IF NOT EXISTS ALL_TRANSACTIONS
                     (USERNAME TEXT NOT NULL,
                     OPERATION TEXT NOT NULL
@@ -144,6 +144,11 @@ def transactions_history(username, changes=0):
         if changes >= 0:
             changes = '+' + str(changes)
         conn.execute("INSERT INTO ALL_TRANSACTIONS VALUES (?,?)", (username, str(changes)))
+        transactions_list = []
+        cursor = conn.execute("SELECT * FROM ALL_TRANSACTIONS IF USERNAME = ?", username)
+        for row in cursor:
+            transactions_list.append(row)
+        return transactions_list
 
 
 def operation(username):
@@ -179,8 +184,11 @@ def operation(username):
     except ValueError:
         print('Sorry, I don`t know how to count with letters')
         oper = 0
-    print('Your operation: ', oper)
-    print(balance(username, oper))
+    if oper % 10:
+        change = oper % 10
+        oper -= change
+        print('Currency must be multiples of 10. So your change is: ', change, ', and operation sum is: ', oper)
+    balance(username, oper)
     transactions_history(username, oper)
     if oper != 0:
         print('Operation successful!')
@@ -224,7 +232,6 @@ def banknotes(username):
                 return print('You have to choose only 1 operation: + or -')
             if not in_or_de:
                 return print('You didn`t choose the operation. Try again :(')
-            cur_lst = [10, 20, 50, 100, 200, 500, 1000]
             try:
                 currency = int(input(f'Balance of which currency from these {cur_lst} would u like to be changed? '))
                 print(currency)
@@ -291,8 +298,9 @@ def start():
             first = '(1) Check the balance - enter 1,'
             second = '\n(2) Deposit or withdraw the money - enter 2,'
             third = '\n(3) Log in to another account - enter 3,'
-            fourth = '\n(4) Control panel - enter 4,'
-            fifth = '\n(5) Exit - enter 5\n'
+            fourth = '\n(4) Watch the transactions - enter 4'
+            fifth = '\n(5) Control panel - enter 5,'
+            sixth = '\n(5) Exit - enter 6\n'
             action = input(first + second + third + fourth + fifth)
             if '1' in action:
                 print('Your balance: ', balance(username))
@@ -302,10 +310,12 @@ def start():
                 username = input('Please enter the username: ')
                 log_in(username)
             if '4' in action:
-                banknotes(username)
-            if ('1' not in action) & ('2' not in action) & ('3' not in action) & ('4' not in action) & ('5' not in action):
-                print('Incorrect input. Please choose option 1, 2, 3, 4 or 5.')
+                transactions_history(username)
             if '5' in action:
+                banknotes(username)
+            if ('1' not in action) & ('2' not in action) & ('3' not in action) & ('4' not in action) & ('5' not in action) & ('6' not in action):
+                print('Incorrect input. Please choose option 1, 2, 3, 4 or 5.')
+            if '6' in action:
                 break
         return f'Thank you for using my ATM! Have a nice day! :)'
 
