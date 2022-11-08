@@ -135,20 +135,24 @@ def balance(username, changes=0):
     return result
 
 
-def transactions_history(username, changes = 0):
+def transactions_history(username, changes = 0, show = False):
+    cursor = conn.cursor()
     conn.execute('''CREATE TABLE IF NOT EXISTS ALL_TRANSACTIONS
                     (USERNAME TEXT NOT NULL,
-                    OPERATION TEXT NOT NULL
+                    OPERATION TEXT
                     )''')
-    if changes != 0:
-        if changes >= 0:
+    if changes:
+        if changes > 0:
             changes = '+' + str(changes)
-        conn.execute("INSERT INTO ALL_TRANSACTIONS VALUES (?,?)", (username, str(changes)))
+        changes = str(changes)
+        conn.execute("INSERT INTO ALL_TRANSACTIONS VALUES (?,?)", (username, changes))
+    if show:
         transactions_list = []
-        cursor = conn.execute("SELECT * FROM ALL_TRANSACTIONS IF USERNAME = ?", username)
+        cursor = conn.execute("SELECT * FROM ALL_TRANSACTIONS")
         for row in cursor:
-            transactions_list.append(row)
-        return transactions_list
+            if row[0] == username:
+                transactions_list.append(row)
+        print(tabulate([('USERNAME', 'OPERATION')] + transactions_list))
 
 
 def operation(username):
@@ -268,8 +272,8 @@ def banknotes(username):
             new_bal = (currency, cur_bal[1] + amount, currency * (cur_bal[1] + amount))
             conn.execute("UPDATE BANKNOTES set NUMBER = ?, SUM = ? where CURRENCY = ?", (new_bal[1], new_bal[2], new_bal[0]))
             if amount != 0:
-                print('Operation successful!')
-                print('New ATM balance: ', view_ATM_balance())
+                print('Operation successful!\nNew ATM balance:')
+                print(tabulate([('CURRENCY', 'NUMBER OF THIS CURRENCY', 'SUM OF THIS CURRENCY')] + view_ATM_balance()))
 
 
         if input('If u`d like too change the ATM balance - type smth, if just watch - leave this field empty: '):
@@ -300,8 +304,8 @@ def start():
             third = '\n(3) Log in to another account - enter 3,'
             fourth = '\n(4) Watch the transactions - enter 4'
             fifth = '\n(5) Control panel - enter 5,'
-            sixth = '\n(5) Exit - enter 6\n'
-            action = input(first + second + third + fourth + fifth)
+            sixth = '\n(6) Exit - enter 6\n'
+            action = input(first + second + third + fourth + fifth + sixth)
             if '1' in action:
                 print('Your balance: ', balance(username))
             if '2' in action:
@@ -310,12 +314,13 @@ def start():
                 username = input('Please enter the username: ')
                 log_in(username)
             if '4' in action:
-                transactions_history(username)
+                transactions_history(username, 0, True)
             if '5' in action:
                 banknotes(username)
             if ('1' not in action) & ('2' not in action) & ('3' not in action) & ('4' not in action) & ('5' not in action) & ('6' not in action):
                 print('Incorrect input. Please choose option 1, 2, 3, 4 or 5.')
             if '6' in action:
+                conn.close()
                 break
         return f'Thank you for using my ATM! Have a nice day! :)'
 
