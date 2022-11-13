@@ -29,8 +29,7 @@ import tabulate
 import datetime
 from prettytable import PrettyTable
 import pygame
-import sys
-import time
+import random
 
 
 conn = sqlite3.connect('atm.db')
@@ -44,6 +43,17 @@ conn.commit()
 conn.execute("INSERT OR IGNORE INTO ACCOUNTS VALUES ('admin', 'admin', 70000.00)")
 conn.commit()
 cur_lst = [1000, 500, 200, 100, 50, 20, 10]
+conn.execute('''CREATE TABLE IF NOT EXISTS BANKNOTES
+                (CURRENCY INT PRIMARY KEY NOT NULL,
+                NUMBER INT,
+                SUM INT
+                )''')
+conn.commit()
+currency_dict = {1000: 10, 500: 20, 200: 50, 100: 100, 50: 200, 20: 500, 10: 1000}
+for key in currency_dict:
+    suma = key * currency_dict[key]
+    conn.execute("INSERT OR IGNORE INTO BANKNOTES VALUES (?, ?, ?)", (key, currency_dict[key], suma))
+    conn.commit()
 
 
 def users():
@@ -83,7 +93,7 @@ def valid_password_check(password):
     password_check_list = [len(password) >= 12]
     password_check_list.append((password.upper() != password) & (password.lower() != password))
     password_check_list.append(all([[i for i in password if i.isalpha()], [j for j in password if j.isdigit()]]))
-    password_check_list.append(bool([n for n in password if n in '@#$%^&*()_+{}:"<>?']))
+    password_check_list.append(bool([n for n in password if n in '!@#$%^&*()_+{}:"<>?']))
     if all(password_check_list):
         return True
     else:
@@ -127,88 +137,78 @@ def sign_up(username):
                 return username
 
 
+def view_ATM_balance():
+    ATM_currency_list = []
+    sum_up = 0
+    cursor = conn.execute("SELECT * FROM BANKNOTES")
+    conn.commit()
+    for row in cursor:
+        ATM_currency_list.append(list(row))
+        sum_up += row[2]
+    conn.execute("UPDATE ACCOUNTS set BALANCE = ? where USERNAME = ?", (sum_up, 'admin'))
+    conn.commit()
+    return ATM_currency_list
+
+
+def change_ATM_balance(currency=0, amount=0):
+    cur_bal = ()
+    in_or_de = input('Enter `+` if you want to increase the ATM balance or `-` if you want to decrease it: ')
+    perms_char = '+-'
+    for ch in in_or_de:
+        if ch not in perms_char:
+            return print('You can enter only + or -')
+    if ('+' in in_or_de) & ('-' in in_or_de):
+        return print('You have to choose only 1 operation: + or -')
+    if not in_or_de:
+        return print('You didn`t choose the operation. Try again :(')
+    try:
+        currency = int(input(f'Balance of which currency from these {cur_lst} would u like to be changed? '))
+        print(currency)
+        if currency not in cur_lst:
+            print(f'Only these {cur_lst} currency exist and could be changed')
+            return False
+        else:
+            for row in view_ATM_balance():
+                if row[0] == currency:
+                    cur_bal = row
+            amount = input('How many banknotes? ')
+            if amount:
+                if '-' in amount:
+                    amount = amount.replace('-', '')
+                    if '-' not in in_or_de:
+                        in_or_de += '-'
+                if '.' in amount:
+                    print('I can change only integer number of banknotes.')
+                    return False
+                else:
+                    amount = int(amount)
+            else:
+                amount = 0
+            if '-' in in_or_de:
+                if int(cur_bal[1]) < amount:
+                    print('The operation is not possible - there are not enough funds on the balance :(')
+                    print(f'Number of {cur_bal[0]} banknotes - {cur_bal[1]}, their sum - {cur_bal[2]}')
+                    amount = 0
+                else:
+                    amount *= -1
+    except ValueError:
+        print(f'Only these {cur_lst} currency exist and could be changed')
+        return False
+    new_bal = (currency, cur_bal[1] + amount, currency * (cur_bal[1] + amount))
+    conn.execute("UPDATE BANKNOTES set NUMBER = ?, SUM = ? where CURRENCY = ?",
+                 (new_bal[1], new_bal[2], new_bal[0]))
+    conn.commit()
+    if amount != 0:
+        print('Operation successful!\nNew ATM balance:')
+        print(tabulate.tabulate(
+            [('CURRENCY', 'NUMBER OF THIS CURRENCY', 'SUM OF THIS CURRENCY')] + view_ATM_balance()))
+
+
 def admin_menu(username):
     if username != 'admin':
         print('ACCESS DENIED | ADMINS ONLY\nP.S. if you are admin - enter 3 and log in as admin)')
         return False
     else:
-        conn.execute('''CREATE TABLE IF NOT EXISTS BANKNOTES
-                        (CURRENCY INT PRIMARY KEY NOT NULL,
-                        NUMBER INT,
-                        SUM INT
-                        )''')
-        conn.commit()
-        currency_dict = {1000: 10, 500: 20, 200: 50, 100: 100, 50: 200, 20: 500, 10: 1000}
-        for key in currency_dict:
-            suma = key * currency_dict[key]
-            conn.execute("INSERT OR IGNORE INTO BANKNOTES VALUES (?, ?, ?)", (key, currency_dict[key], suma))
-            conn.commit()
-
-        def view_ATM_balance():
-            ATM_currency_list = []
-            sum_up = 0
-            cursor = conn.execute("SELECT * FROM BANKNOTES")
-            conn.commit()
-            for row in cursor:
-                ATM_currency_list.append(row)
-                sum_up += row[2]
-            conn.execute("UPDATE ACCOUNTS set BALANCE = ? where USERNAME = ?", (sum_up, 'admin'))
-            conn.commit()
-            return ATM_currency_list
-
-        def change_ATM_balance():
-            cur_bal = ()
-            in_or_de = input('Enter `+` if you want to increase the ATM balance or `-` if you want to decrease it: ')
-            perms_char = '+-'
-            for ch in in_or_de:
-                if ch not in perms_char:
-                    return print('You can enter only + or -')
-            if ('+' in in_or_de) & ('-' in in_or_de):
-                return print('You have to choose only 1 operation: + or -')
-            if not in_or_de:
-                return print('You didn`t choose the operation. Try again :(')
-            try:
-                currency = int(input(f'Balance of which currency from these {cur_lst} would u like to be changed? '))
-                print(currency)
-                if currency not in cur_lst:
-                    print(f'Only these {cur_lst} currency exist and could be changed')
-                    return False
-                else:
-                    for row in view_ATM_balance():
-                        if row[0] == currency:
-                            cur_bal = row
-                    amount = input('How many banknotes? ')
-                    if amount:
-                        if '-' in amount:
-                            amount = amount.replace('-', '')
-                            if '-' not in in_or_de:
-                                in_or_de += '-'
-                        if '.' in amount:
-                            print('I can change only integer number of banknotes.')
-                            return False
-                        else:
-                            amount = int(amount)
-                    else:
-                        amount = 0
-                    if '-' in in_or_de:
-                        if int(cur_bal[1]) < amount:
-                            print('The operation is not possible - there are not enough funds on the balance :(')
-                            print(f'Number of {cur_bal[0]} banknotes - {cur_bal[1]}, their sum - {cur_bal[2]}')
-                            amount = 0
-                        else:
-                            amount *= -1
-            except ValueError:
-                print(f'Only these {cur_lst} currency exist and could be changed')
-                return False
-            new_bal = (currency, cur_bal[1] + amount, currency * (cur_bal[1] + amount))
-            conn.execute("UPDATE BANKNOTES set NUMBER = ?, SUM = ? where CURRENCY = ?",
-                         (new_bal[1], new_bal[2], new_bal[0]))
-            conn.commit()
-            if amount != 0:
-                print('Operation successful!\nNew ATM balance:')
-                print(tabulate.tabulate(
-                    [('CURRENCY', 'NUMBER OF THIS CURRENCY', 'SUM OF THIS CURRENCY')] + view_ATM_balance()))
-
         while True:
             print('Choose an option:')
             first = '(1) Check the ATM balance - enter 1,'
@@ -315,23 +315,60 @@ def operation(username):
             oper -= oper_ten
             print(f'Currency must be multiples of 10. So your change is: {oper_ten}, and operation sum is: {oper}')
         if oper < 0:
-            rest = abs(oper)
+            #rest = abs(oper)
             get_currency = {}
+            combinations = []
+            available_currency = []
+            for k in [i for i in view_ATM_balance() if i[1]]:
+                for j in range(k[1]):
+                    available_currency.append(k[0])
+            for i in range(10000):
+                new_row = []
+                while sum(new_row) < abs(oper):
+                    new_row.append(random.choices(available_currency)[0])
+                combinations.append(new_row)
+            sum_list = [sum(i) for i in combinations]
+            best_match_combinations = [i for i in combinations if sum(i) == min(sum_list)]
+            len_list = [len(i) for i in best_match_combinations]
+            shortest_combinations = [i for i in best_match_combinations if len(i) == min(len_list)]
+            sorted_combinations = [sorted(i, reverse=True) for i in shortest_combinations]
+            unique_combinations = []
+            for i in sorted_combinations:
+                if i not in unique_combinations:
+                    unique_combinations.append(i)
             for i in cur_lst:
-                if rest >= i:
-                    get_currency[i] = rest // i
-                    rest = rest % i
-            in_ATM_now = []
-            cursor = conn.execute("SELECT * FROM BANKNOTES")
-            conn.commit()
-            for row in cursor:
-                if row[0] in list(get_currency):
-                    in_ATM_now.append(row)
-            for i in in_ATM_now:
-                new_number = i[1] - get_currency[i[0]]
+                if i in unique_combinations[0]:
+                    get_currency[i] = unique_combinations[0].count(i)
+            # for i in cur_lst:
+            #     if i in [d[0] for d in view_ATM_balance() if d[1]]:
+            #         if rest >= i:
+            #             how_many = rest // i
+            #             while how_many > [k[1] for k in view_ATM_balance() if k[0] == i][0]:
+            #                 how_many -= 1
+            #             get_currency[i] = how_many
+            #             rest -= i * how_many
+            #             for l in [s for s in view_ATM_balance() if s[0] in list(get_currency)]:
+            #                 new_number = l[1] - get_currency[l[0]]
+            #                 conn.execute("UPDATE BANKNOTES set NUMBER = ?, SUM = ? where CURRENCY = ?",
+            #                              (new_number, new_number * l[0], l[0]))
+            #             conn.commit()
+            # while rest > 0:
+            #     print([d[0] for d in view_ATM_balance() if d[1]][::-1])
+            #     for i in [d[0] for d in view_ATM_balance() if d[1]][::-1]:
+            #         if i >= rest:
+            #             rest -= i
+            #             if i in get_currency.keys():
+            #                 get_currency[i] += 1
+            #             else:
+            #                 get_currency[i] = 1
+            #             if rest <= 0:
+            #                 break
+            for l in [s for s in view_ATM_balance() if s[0] in list(get_currency)]:
+                new_number = l[1] - get_currency[l[0]]
                 conn.execute("UPDATE BANKNOTES set NUMBER = ?, SUM = ? where CURRENCY = ?",
-                             (new_number, new_number * i[0], i[0]))
+                             (new_number, new_number * l[0], l[0]))
             conn.commit()
+
             print('Get your money:')
             p_tables = PrettyTable()
             p_tables.field_names = ['CURRENCY', 'HOW MANY']
