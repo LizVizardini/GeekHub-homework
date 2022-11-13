@@ -23,14 +23,12 @@
 - (опціонально) не лініться і придумайте якусь свою особливу фішку/додатковий функціонал, але за умови що основне
 завдання виконане"""
 
-
 import sqlite3
 import tabulate
 import datetime
 from prettytable import PrettyTable
 import pygame
 import random
-
 
 conn = sqlite3.connect('atm.db')
 cursor = conn.cursor()
@@ -309,13 +307,13 @@ def operation(username):
     except ValueError:
         print('Sorry, I don`t know how to count with letters')
         oper = 0
-    # if balance('admin') + oper - oper % 10 >= 0:
-    #     oper_ten = oper % 10
-    #     if oper_ten:
-    #         oper -= oper_ten
-    #         print(f'Currency must be multiples of 10. So your change is: {oper_ten}, and operation sum is: {oper}')
+    if balance('admin') + oper - oper % 10 >= 0:
+        oper_ten = oper % 10
+        if oper_ten:
+            oper -= oper_ten
+            print(f'Currency must be multiples of 10. So your change is: {oper_ten}, and operation sum is: {oper}')
         if oper < 0:
-            #rest = abs(oper)
+            # rest = abs(oper)
             get_currency = {}
             combinations = []
             available_currency = []
@@ -369,7 +367,7 @@ def operation(username):
                              (new_number, new_number * l[0], l[0]))
             conn.commit()
 
-            if sum(unique_combinations)[0] != abs(oper):
+            if sum(unique_combinations[0]) != abs(oper):
                 you_get = sum(unique_combinations)
                 print('Due to the lack of the necessary bills in the ATM, the withdrawal amount: ', you_get)
 
