@@ -309,11 +309,11 @@ def operation(username):
     except ValueError:
         print('Sorry, I don`t know how to count with letters')
         oper = 0
-    if balance('admin') + oper - oper % 10 >= 0:
-        oper_ten = oper % 10
-        if oper_ten:
-            oper -= oper_ten
-            print(f'Currency must be multiples of 10. So your change is: {oper_ten}, and operation sum is: {oper}')
+    # if balance('admin') + oper - oper % 10 >= 0:
+    #     oper_ten = oper % 10
+    #     if oper_ten:
+    #         oper -= oper_ten
+    #         print(f'Currency must be multiples of 10. So your change is: {oper_ten}, and operation sum is: {oper}')
         if oper < 0:
             #rest = abs(oper)
             get_currency = {}
@@ -368,6 +368,10 @@ def operation(username):
                 conn.execute("UPDATE BANKNOTES set NUMBER = ?, SUM = ? where CURRENCY = ?",
                              (new_number, new_number * l[0], l[0]))
             conn.commit()
+
+            if sum(unique_combinations)[0] != abs(oper):
+                you_get = sum(unique_combinations)
+                print('Due to the lack of the necessary bills in the ATM, the withdrawal amount: ', you_get)
 
             print('Get your money:')
             p_tables = PrettyTable()
