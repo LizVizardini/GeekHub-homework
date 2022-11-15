@@ -320,12 +320,15 @@ def operation(username):
             for k in [i for i in view_ATM_balance() if i[1]]:
                 for j in range(k[1]):
                     available_currency.append(k[0])
-            for i in range(10000):
-                new_row = []
-                while sum(new_row) < abs(oper):
-                    new_row.append(random.choices(available_currency)[0])
-                combinations.append(new_row)
-            sum_list = [sum(i) for i in combinations]
+            for r in range(2):
+                for i in range(10000):
+                    new_row = []
+                    while sum(new_row) < abs(oper):
+                        new_row.append(random.choices(available_currency)[0])
+                    combinations.append(new_row)
+                sum_list = [sum(i) for i in combinations]
+                if abs(oper) in sum_list:
+                    break
             best_match_combinations = [i for i in combinations if sum(i) == min(sum_list)]
             len_list = [len(i) for i in best_match_combinations]
             shortest_combinations = [i for i in best_match_combinations if len(i) == min(len_list)]
@@ -368,7 +371,7 @@ def operation(username):
             conn.commit()
 
             if sum(unique_combinations[0]) != abs(oper):
-                you_get = sum(unique_combinations)
+                you_get = sum(unique_combinations[0])
                 print('Due to the lack of the necessary bills in the ATM, the withdrawal amount: ', you_get)
 
             print('Get your money:')
