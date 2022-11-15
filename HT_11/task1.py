@@ -21,7 +21,7 @@ class Calc:
     Creating class 'Calc'
 
     """
-    last_result = None  # Creating a class attribute 'last_result'
+    last_result, new_result = None, None  # Creating a class attributes 'last_result' and 'new_result'
 
     def plus(self, a, b):
         """
@@ -31,11 +31,12 @@ class Calc:
             b: the 2nd number
 
         Returns:
-            the sum of args
+            the sum of args or the last result
 
         """
-        self.last_result = None  # Assigning the previous value to the attribute
-        return a + b
+
+        self.new_result = a + b
+        return self.new_result
 
     def minus(self, a, b):
         """
@@ -48,8 +49,10 @@ class Calc:
             the difference of args
 
         """
-        self.last_result = self.plus(a, b)  # Assigning the previous value to the attribute
-        return a - b
+
+        self.last_result = self.new_result  # Assigning the previous value to the attribute
+        self.new_result = a - b
+        return self.new_result
 
     def multiply(self, a, b):
         """
@@ -62,8 +65,9 @@ class Calc:
             the product of the args
 
         """
-        self.last_result = self.minus(a, b)  # Assigning the previous value to the attribute
-        return a * b
+        self.last_result = self.new_result  # Assigning the previous value to the attribute
+        self.new_result = a * b
+        return self.new_result
 
     def divide(self, a, b):
         """
@@ -76,17 +80,22 @@ class Calc:
             fraction from division of args
 
         """
-        self.last_result = self.multiply(a, b)  # Assigning the previous value to the attribute
-        return a / b
+        self.last_result = self.new_result  # Assigning the previous value to the attribute
+        self.new_result = a / b
+        return self.new_result
 
 
 calc_1 = Calc()  # Creating the instance of the class
 print(calc_1.last_result)  # Printing the attribute value
-print(calc_1.plus(1, 1))  # Printing the 'plus' method result
+
+calc_1.plus(1, 1)  # The 'plus' method
 print(calc_1.last_result)  # The attribute value after calling the 'plus' method (returns the previous method's result)
-print(calc_1.minus(2, 1))  # Printing the 'minus' method result
+
+calc_1.minus(3, 2)  # The 'minus' method
 print(calc_1.last_result)  # The attribute value after calling the 'minus' method (returns the previous method's result)
-print(calc_1.multiply(2, 2))  # Printing the 'multiply' method result
+
+calc_1.multiply(2, 2)  # Printing the 'multiply' method result
 print(calc_1.last_result)  # The attribute value after calling 'multiply' method (returns the previous method's result)
-print(calc_1.divide(3, 2))  # Printing the 'divide' method result
+
+calc_1.divide(6, 2)  # Printing the 'divide' method result
 print(calc_1.last_result)  # The attribute value after calling 'divide' method (returns the previous method's result)

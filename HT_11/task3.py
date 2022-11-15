@@ -6,7 +6,6 @@ import sqlite3
 import tabulate
 import datetime
 from prettytable import PrettyTable
-import pygame
 import random
 
 conn = sqlite3.connect('atm.db')
@@ -358,7 +357,6 @@ class Money:
 
 
 class MainClass:
-    lang = input('Please choose the language. Type ENG or RUS: ')
     first = '(1) Check the balance - enter 1,'
     second = '\n(2) Deposit or withdraw the money - enter 2,'
     third = '\n(3) Log in to another account - enter 3,'
@@ -367,7 +365,9 @@ class MainClass:
     sixth = '\n(6) Exit - enter 6\n'
 
     def start(self):
-        if self.lang.upper() == 'RUS':
+        lang = input('Please choose the language. Type ENG or RUS: ')
+        if lang.upper() == 'RUS':
+            import pygame
             print('Щелепи банкомата не налаштовані на російську')
             pygame.init()
             song = pygame.mixer.Sound('file.mp3')
@@ -377,7 +377,7 @@ class MainClass:
                 clock.tick(11)
             pygame.quit()
             return None
-        if self.lang.upper() == 'ENG':
+        if lang.upper() == 'ENG':
             account_exists = input('Do you have an account? If yes - type smth, if no - leave this field empty: ')
             your_name = input('Please enter the username: ')
             if account_exists:
@@ -427,6 +427,7 @@ class MainClass:
             self.start()
 
 
-print('WELCOME TO THE ATM!')
-main_class = MainClass()
-main_class.start()
+if __name__ == '__main__':
+    print('WELCOME TO THE ATM!')
+    main_class = MainClass()
+    main_class.start()
