@@ -40,11 +40,11 @@ conn.commit()
 
 class Users:
     users_passwords_balance_list = []
-    cursor = conn.execute("SELECT * FROM ACCOUNTS")
-    conn.commit()
 
     def users_balance_passwords(self):
-        for row in self.cursor:
+        cursor = conn.execute("SELECT * FROM ACCOUNTS")
+        conn.commit()
+        for row in cursor:
             self.users_passwords_balance_list.append(row)
         return self.users_passwords_balance_list
 
@@ -130,8 +130,7 @@ class Authorization:
 
 
 class AdminMenu:
-    atm_currency_list = []
-    cur_bal = ()
+    username = 'admin'
     perms_char = '+-'
     first = '(1) Check the ATM balance - enter 1,'
     second = '\n(2) Check the balance of banknotes - enter 2,'
@@ -140,18 +139,18 @@ class AdminMenu:
     fifth = '\n(5) Exit - enter 5\n'
 
     def view_atm_balance(self):
+        atm_currency_list = []
         sum_up = 0
         cursor = conn.execute("SELECT * FROM BANKNOTES")
         for row in cursor:
-            self.atm_currency_list.append(list(row))
+            atm_currency_list.append(list(row))
             sum_up += row[2]
-        admin = 'admin'
-        cursor = conn.cursor()
-        cursor.execute("UPDATE ACCOUNTS set BALANCE = ? where USERNAME = ?", (sum_up, admin))
+        conn.execute("UPDATE ACCOUNTS set BALANCE = ? where USERNAME = ?", (sum_up, self.username))
         conn.commit()
-        return self.atm_currency_list
+        return atm_currency_list
 
     def change_atm_balance(self, currency=0, amount=0):
+        cur_bal = ()
         in_or_de = input('Enter `+` if you want to increase the ATM balance or `-` if you want to decrease it: ')
         for ch in in_or_de:
             if ch not in self.perms_char:
@@ -168,7 +167,7 @@ class AdminMenu:
             else:
                 for row in self.view_atm_balance():
                     if row[0] == currency:
-                        self.cur_bal = row
+                        cur_bal = row
                 amount = input('How many banknotes? ')
                 if amount:
                     if '-' in amount:
@@ -183,17 +182,17 @@ class AdminMenu:
                 else:
                     amount = 0
                 if '-' in in_or_de:
-                    if int(self.cur_bal[1]) < amount:
+                    if int(cur_bal[1]) < amount:
                         print('The operation is not possible - there are not enough funds on the balance :(')
                         print(
-                            f'Number of {self.cur_bal[0]} banknotes - {self.cur_bal[1]}, their sum - {self.cur_bal[2]}')
+                            f'Number of {cur_bal[0]} banknotes - {cur_bal[1]}, their sum - {cur_bal[2]}')
                         amount = 0
                     else:
                         amount *= -1
         except ValueError:
             print(f'Only these {cur_lst} currency exist and could be changed')
             return False
-        new_bal = (currency, self.cur_bal[1] + amount, currency * (self.cur_bal[1] + amount))
+        new_bal = (currency, cur_bal[1] + amount, currency * (cur_bal[1] + amount))
         conn.execute("UPDATE BANKNOTES set NUMBER = ?, SUM = ? where CURRENCY = ?",
                      (new_bal[1], new_bal[2], new_bal[0]))
         conn.commit()
@@ -211,6 +210,7 @@ class AdminMenu:
                 print('Choose an option:')
                 action = input(self.first + self.second + self.third + self.fourth + self.fifth)
                 if '1' in action:
+                    self.view_atm_balance()
                     money = Money(username)
                     print('The ATM balance: ', money.balance(username))
                 if '2' in action:
@@ -339,8 +339,8 @@ class Money:
 
                 self.username = old_name
                 if sum(self.unique_combinations[0]) != abs(oper):
-                    you_get = sum(self.unique_combinations[0])
-                    print('Due to the lack of the necessary bills in the ATM, the withdrawal amount: ', you_get)
+                    oper = sum(self.unique_combinations[0])
+                    print('Due to the lack of the necessary bills in the ATM, the withdrawal amount: ', oper)
 
                 print('Get your money:')
                 p_tables = PrettyTable()
