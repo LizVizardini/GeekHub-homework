@@ -35,6 +35,7 @@ class Calc:
 
         """
 
+        self.last_result = self.new_result  # Assigning the previous value to the attribute
         self.new_result = a + b
         return self.new_result
 
@@ -85,17 +86,32 @@ class Calc:
         return self.new_result
 
 
+# calc_1 = Calc()  # Creating the instance of the class
+# print(calc_1.last_result)  # Printing the attribute value
+#
+# calc_1.plus(1, 1)  # The 'plus' method
+# print(calc_1.last_result)  # The attribute value after calling the 'plus' method (returns the previous method's result)
+#
+# calc_1.minus(3, 2)  # The 'minus' method
+# print(calc_1.last_result)  # The attribute value after calling the 'minus' method (returns the previous method's result)
+#
+# calc_1.multiply(2, 2)  # Printing the 'multiply' method result
+# print(calc_1.last_result)  # The attribute value after calling 'multiply' method (returns the previous method's result)
+#
+# calc_1.divide(6, 2)  # Printing the 'divide' method result
+# print(calc_1.last_result)  # The attribute value after calling 'divide' method (returns the previous method's result)
+
 calc_1 = Calc()  # Creating the instance of the class
 print(calc_1.last_result)  # Printing the attribute value
 
 calc_1.plus(1, 1)  # The 'plus' method
 print(calc_1.last_result)  # The attribute value after calling the 'plus' method (returns the previous method's result)
 
-calc_1.minus(3, 2)  # The 'minus' method
-print(calc_1.last_result)  # The attribute value after calling the 'minus' method (returns the previous method's result)
+calc_1.plus(1, 2)  # The 'plus' method
+print(calc_1.last_result)  # The attribute value after calling the 'plus' method (returns the previous method's result)
 
-calc_1.multiply(2, 2)  # Printing the 'multiply' method result
-print(calc_1.last_result)  # The attribute value after calling 'multiply' method (returns the previous method's result)
+calc_1.plus(1, 3)  # The 'plus' method
+print(calc_1.last_result)  # The attribute value after calling the 'plus' method (returns the previous method's result)
 
-calc_1.divide(6, 2)  # Printing the 'divide' method result
-print(calc_1.last_result)  # The attribute value after calling 'divide' method (returns the previous method's result)
+calc_1.plus(1, 4)  # The 'plus' method
+print(calc_1.last_result)  # The attribute value after calling the 'plus' method (returns the previous method's result)

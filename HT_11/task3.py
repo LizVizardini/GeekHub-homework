@@ -228,9 +228,7 @@ class AdminMenu:
 
 
 class Money:
-    transactions_list, combinations, available_currency, unique_combinations = [], [], [], []
     perms_char = '+-'
-    get_currency = {}
 
     def __init__(self, username):
         self.username = username
@@ -260,16 +258,19 @@ class Money:
         if show:
             cursor = conn.execute("SELECT * FROM ALL_TRANSACTIONS")
             conn.commit()
+            transactions_list = []
             if self.username != 'admin':
                 for row in cursor:
                     if row[0] == self.username:
-                        self.transactions_list.append(row)
+                        transactions_list.append(row)
             else:
                 for row in cursor:
-                    self.transactions_list.append(row)
-            print(tabulate.tabulate([('USERNAME', 'OPERATION', 'DATE/TIME')] + self.transactions_list))
+                    transactions_list.append(row)
+            print(tabulate.tabulate([('USERNAME', 'OPERATION', 'DATE/TIME')] + transactions_list))
 
     def operation(self):
+        combinations, available_currency, unique_combinations = [], [], []
+        get_currency = {}
         earn_or_spend = input('Enter `+` if you want to deposit money on the card or `-` if you want'
                               'to withdraw money: ')
         for ch in earn_or_spend:
@@ -313,39 +314,48 @@ class Money:
                 admin_menu = AdminMenu()
                 for k in [i for i in admin_menu.view_atm_balance() if i[1]]:
                     for j in range(k[1]):
-                        self.available_currency.append(k[0])
+                        available_currency.append(k[0])
                 for i in range(10000):
                     new_row = []
+                    available_currency_for_new_row = list(available_currency)
                     while sum(new_row) < abs(oper):
-                        new_row.append(random.choices(self.available_currency)[0])
-                    self.combinations.append(new_row)
-                sum_list = [sum(i) for i in self.combinations]
-                best_match_combinations = [i for i in self.combinations if sum(i) == min(sum_list)]
+                        val = random.choices(available_currency_for_new_row)[0]
+                        new_row.append(val)
+                        available_currency_for_new_row.remove(val)
+                    combinations.append(new_row)
+                sum_list = [sum(i) for i in combinations]
+                best_match_combinations = [i for i in combinations if sum(i) == min(sum_list)]
                 len_list = [len(i) for i in best_match_combinations]
                 shortest_combinations = [i for i in best_match_combinations if len(i) == min(len_list)]
                 sorted_combinations = [sorted(i, reverse=True) for i in shortest_combinations]
+
                 for i in sorted_combinations:
-                    if i not in self.unique_combinations:
-                        self.unique_combinations.append(i)
+                    if i not in unique_combinations:
+                        unique_combinations.append(i)
+                if len(unique_combinations) != 1:
+                    first_elements = [k[0] for k in unique_combinations]
+                    unique_combination = [row for row in unique_combinations if row[0] == max(first_elements)][0]
+                else:
+                    unique_combination = unique_combinations[0]
                 for i in cur_lst:
-                    if i in self.unique_combinations[0]:
-                        self.get_currency[i] = self.unique_combinations[0].count(i)
+                    if i in unique_combination:
+                        get_currency[i] = unique_combination.count(i)
                 admin_menu = AdminMenu()
-                for l in [s for s in admin_menu.view_atm_balance() if s[0] in list(self.get_currency)]:
-                    new_number = l[1] - self.get_currency[l[0]]
+                for l in [s for s in admin_menu.view_atm_balance() if s[0] in list(get_currency)]:
+                    new_number = l[1] - get_currency[l[0]]
                     conn.execute("UPDATE BANKNOTES set NUMBER = ?, SUM = ? where CURRENCY = ?",
                                  (new_number, new_number * l[0], l[0]))
                 conn.commit()
 
                 self.username = old_name
-                if sum(self.unique_combinations[0]) != abs(oper):
-                    oper = sum(self.unique_combinations[0])
+                if sum(unique_combinations[0]) != abs(oper):
+                    oper = sum(unique_combination)
                     print('Due to the lack of the necessary bills in the ATM, the withdrawal amount: ', oper)
 
                 print('Get your money:')
                 p_tables = PrettyTable()
                 p_tables.field_names = ['CURRENCY', 'HOW MANY']
-                for i in self.get_currency.items():
+                for i in get_currency.items():
                     p_tables.add_row(i)
                 print(p_tables)
             self.balance(self.username, oper)
