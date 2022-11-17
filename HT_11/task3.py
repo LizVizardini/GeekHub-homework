@@ -29,7 +29,7 @@ currency_dict = {1000: 10, 500: 20, 200: 50, 100: 100, 50: 200, 20: 500, 10: 100
 for key in currency_dict:
     suma = key * currency_dict[key]
     conn.execute("INSERT OR IGNORE INTO BANKNOTES VALUES (?, ?, ?)", (key, currency_dict[key], suma))
-    conn.commit()
+conn.commit()
 conn.execute('''CREATE TABLE IF NOT EXISTS ALL_TRANSACTIONS
                 (USERNAME TEXT NOT NULL,
                 OPERATION TEXT,
@@ -39,20 +39,21 @@ conn.commit()
 
 
 class Users:
-    users_passwords_balance_list = []
 
     def users_balance_passwords(self):
+        users_passwords_balance_list = []
         cursor = conn.execute("SELECT * FROM ACCOUNTS")
         conn.commit()
         for row in cursor:
-            self.users_passwords_balance_list.append(row)
-        return self.users_passwords_balance_list
+            users_passwords_balance_list.append(row)
+        return users_passwords_balance_list
 
 
 users = Users()
 
 
 class Authorization:
+
     def __init__(self, username):
         self.username = username
 
@@ -60,10 +61,10 @@ class Authorization:
         """Usernames can contain letters (a-z), numbers (0-9), and periods (.). Usernames cannot contain
         an ampersand (&), equals sign (=), underscore (_), dash (-), plus sign (+), comma (,), brackets (<,>),
         or more than one period (.) in a row. Maximum length - 256 characters."""
-        forbidden_symbols = '&=_-+,<>'
+
         for i in self.username:
             full_stops = []
-            if (len(i) > 256) or (i in forbidden_symbols):
+            if (len(i) > 256) or (i in '&=_-+,<>'):
                 print('Usernames can`t contain: &, =, _, -, +, comma (,), <, > or include more than 256 characters.')
                 return False
             if i == '.':
@@ -87,7 +88,7 @@ class Authorization:
             return True
         else:
             print('Password must include 12 or more characters; numbers; uppercase and lowercase letters')
-            print('and minimum 1 special character such as ! @ # or ?')
+            print('and minimum 1 special character such as ! @ # ? or others')
             return False
 
     def log_in(self):
@@ -131,7 +132,6 @@ class Authorization:
 
 class AdminMenu:
     username = 'admin'
-    perms_char = '+-'
     first = '(1) Check the ATM balance - enter 1,'
     second = '\n(2) Check the balance of banknotes - enter 2,'
     third = '\n(3) Change the balance of banknotes - enter 3,'
@@ -149,11 +149,10 @@ class AdminMenu:
         conn.commit()
         return atm_currency_list
 
-    def change_atm_balance(self, currency=0, amount=0):
-        cur_bal = ()
+    def change_atm_balance(self):
         in_or_de = input('Enter `+` if you want to increase the ATM balance or `-` if you want to decrease it: ')
         for ch in in_or_de:
-            if ch not in self.perms_char:
+            if ch not in '+-':
                 return print('You can enter only + or -')
         if ('+' in in_or_de) & ('-' in in_or_de):
             return print('You have to choose only 1 operation: + or -')
@@ -165,6 +164,7 @@ class AdminMenu:
                 print(f'Only these {cur_lst} currency exist and could be changed')
                 return False
             else:
+                cur_bal = ()
                 for row in self.view_atm_balance():
                     if row[0] == currency:
                         cur_bal = row
@@ -202,7 +202,7 @@ class AdminMenu:
                 [['CURRENCY', 'NUMBER OF THIS CURRENCY', 'SUM OF THIS CURRENCY']] + self.view_atm_balance()))
 
     def control_panel(self, username):
-        if username != 'admin':
+        if username != self.username:
             print('ACCESS DENIED | ADMINS ONLY\nP.S. if you are admin - enter 3 and log in as admin)')
             return False
         else:
@@ -328,7 +328,6 @@ class Money:
                 len_list = [len(i) for i in best_match_combinations]
                 shortest_combinations = [i for i in best_match_combinations if len(i) == min(len_list)]
                 sorted_combinations = [sorted(i, reverse=True) for i in shortest_combinations]
-
                 for i in sorted_combinations:
                     if i not in unique_combinations:
                         unique_combinations.append(i)
