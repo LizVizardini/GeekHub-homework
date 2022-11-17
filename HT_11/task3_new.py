@@ -40,6 +40,9 @@ conn.commit()
 
 class Users:
 
+    def __init__(self):
+        self.banknotes_operations = BanknotesOperations()
+
     def accounts_and_balance(self):
         cursor = conn.execute("SELECT * FROM ACCOUNTS")
         users_passwords_balance_list = [i for i in cursor]
@@ -84,7 +87,7 @@ class Users:
         return oper
 
     def operation_sum(self, oper, earn_or_spend):
-        after_minus_check = banknotes_operations.negative_amount(oper, earn_or_spend)
+        after_minus_check = self.banknotes_operations.negative_amount(oper, earn_or_spend)
         oper = after_minus_check[0]
         earn_or_spend = after_minus_check[1]
         oper = self.oper_sum_to_number(oper)
@@ -101,7 +104,7 @@ class Users:
         return oper
 
     def multiples_of_10(self, oper):
-        if banknotes_operations.atm_balance() + oper - oper % 10 >= 0:
+        if self.banknotes_operations.atm_balance() + oper - oper % 10 >= 0:
             oper_ten = oper % 10
             if oper_ten:
                 oper -= oper_ten
@@ -113,7 +116,7 @@ class Users:
 
     def available_currency(self):
         available_currency = []
-        for k in [i for i in banknotes_operations.atm_contents() if i[1]]:
+        for k in [i for i in self.banknotes_operations.atm_contents() if i[1]]:
             for j in range(k[1]):
                 available_currency.append(k[0])
         return available_currency
@@ -155,7 +158,7 @@ class Users:
         return get_currency
 
     def update_banknotes(self, get_currency):
-        for l in [s for s in banknotes_operations.atm_contents() if s[0] in list(get_currency)]:
+        for l in [s for s in self.banknotes_operations.atm_contents() if s[0] in list(get_currency)]:
             new_number = l[1] - get_currency[l[0]]
             conn.execute("UPDATE BANKNOTES set NUMBER = ?, SUM = ? where CURRENCY = ?",
                          (new_number, new_number * l[0], l[0]))
@@ -177,7 +180,7 @@ class Users:
         print(p_tables)
 
     def operation(self, username):
-        earn_or_spend = banknotes_operations.put_or_get('user')
+        earn_or_spend = self.banknotes_operations.put_or_get('user')
         if not earn_or_spend:
             print('You didn`t choose the operation. Try again :(')
             return False
@@ -202,18 +205,16 @@ class Users:
             return False
 
 
-users = Users()
-
-
 class Authorization:
 
     def __init__(self, username):
         self.username = username
+        self.users_ar = Users()
 
     def log_in(self):
         for i in range(3):
             password = input('Please enter your password: ')
-            if bool([row for row in users.accounts_and_balance() if
+            if bool([row for row in self.users_ar.accounts_and_balance() if
                      (row[0] == self.username) & (row[1] == password)]):
                 return self.username
             else:
@@ -247,7 +248,7 @@ class Authorization:
                 break
 
     def account_exists_check(self):
-        usernames_list = [i[0] for i in users.accounts_and_balance()]
+        usernames_list = [i[0] for i in self.users_ar.accounts_and_balance()]
         if self.username in usernames_list:
             print('You already have an account.')
             return True
@@ -405,9 +406,6 @@ class BanknotesOperations:
         self.new_atm_contents_show(amount)
 
 
-banknotes_operations = BanknotesOperations()
-
-
 class AdminMenu:
     username = 'admin'
     first = '(1) Check the ATM balance - enter 1,'
@@ -416,6 +414,10 @@ class AdminMenu:
     fourth = '\n(4) Check all the transactions - enter 4,'
     fifth = '\n(5) Exit - enter 5\n'
     banknotes_header = ['CURRENCY', 'NUMBER OF THIS CURRENCY', 'SUM OF THIS CURRENCY']
+
+    def __init__(self):
+        self.bank_oper = BanknotesOperations()
+        self.users_am = Users()
 
     def rights_check(self, username):
         if username != self.username:
@@ -430,13 +432,13 @@ class AdminMenu:
                 print('Choose an option:')
                 action = input(self.first + self.second + self.third + self.fourth + self.fifth)
                 if '1' in action:
-                    print('The ATM balance: ', banknotes_operations.atm_balance())
+                    print('The ATM balance: ', self.bank_oper.atm_balance())
                 if '2' in action:
-                    print(tabulate.tabulate([self.banknotes_header] + banknotes_operations.atm_contents()))
+                    print(tabulate.tabulate([self.banknotes_header] + self.bank_oper.atm_contents()))
                 if '3' in action:
-                    banknotes_operations.change_atm_balance()
+                    self.bank_oper.change_atm_balance()
                 if '4' in action:
-                    users.show_transactions()
+                    self.users_am.show_transactions()
                 if not [i for i in range(1, 6) if str(i) in action]:
                     print('Incorrect input. Please choose option 1, 2, 3, 4 or 5.')
                 if '5' in action:
@@ -452,6 +454,10 @@ class MainClass:
     fourth = '\n(4) Watch the transactions - enter 4,'
     fifth = '\n(5) Control panel - enter 5,'
     sixth = '\n(6) Exit - enter 6\n'
+
+    def __init__(self):
+        self.users_menu = Users()
+        self.admin_menu = AdminMenu()
 
     def rus_lang(self):
         import pygame
@@ -479,28 +485,25 @@ class MainClass:
             return f'Login failed'
         else:
             if username == 'admin':
-                admin_menu = AdminMenu()
-                admin_menu.control_panel(username)
+                self.admin_menu.control_panel(username)
             else:
                 while True:
                     print('\nChoose an action:\nIf you want to')
                     action = input(self.first + self.second + self.third + self.fourth + self.fifth + self.sixth)
                     if '1' in action:
-                        print('Your balance: ', users.set_and_get_user_balance(username))
+                        print('Your balance: ', self.users_menu.set_and_get_user_balance(username))
                     if '2' in action:
-                        users.operation(username)
+                        self.users_menu.operation(username)
                     if '3' in action:
                         username = input('Please enter the username: ')
                         username_actions = Authorization(username)
                         if username_actions.log_in() == 'admin':
-                            admin_menu = AdminMenu()
-                            admin_menu.control_panel(username)
+                            self.admin_menu.control_panel(username)
                             break
                     if '4' in action:
-                        users.show_transactions(username)
+                        self.users_menu.show_transactions(username)
                     if '5' in action:
-                        admin_menu = AdminMenu()
-                        admin_menu.control_panel(username)
+                        self.admin_menu.control_panel(username)
                     if not [i for i in range(1, 7) if str(i) in action]:
                         print('Incorrect input. Please choose option 1, 2, 3, 4, 5 or 6')
                     if '6' in action:
