@@ -7,28 +7,27 @@ from abc import ABC, abstractmethod
 import sqlite3
 import tabulate
 
-
 conn = sqlite3.connect('library.db')
 cursor = conn.cursor()
 conn.execute('''CREATE TABLE IF NOT EXISTS STUDENT_BOOKS
                 (SUBJECT TEXT NOT NULL,
                 GRADE INT NOT NULL,
-                AMOUNT INT
+                AMOUNT INT,
+                PRIMARY KEY (SUBJECT, GRADE)
                 )''')
-#conn.execute("CREATE UNIQUE INDEX IF NOT EXIST IX_STUDENT_BOOKS ON STUDENT_BOOKS (SUBJECT, GRADE)")
 conn.commit()
 
 cursor = conn.cursor()
 conn.execute('''CREATE TABLE IF NOT EXISTS TEACHER_BOOKS
                 (SUBJECT TEXT NOT NULL,
                 GRADE INT NOT NULL,
-                AMOUNT INT
+                AMOUNT INT,
+                PRIMARY KEY (SUBJECT, GRADE)
                 )''')
-#conn.execute("CREATE UNIQUE INDEX IF NOT EXIST IX_TEACHER_BOOKS ON TEACHER_BOOKS (SUBJECT, GRADE)")
 conn.commit()
 
 student_books = []
-for i in range(1, 11):
+for i in range(1, 12):
     ukr = ('Ukrainian language', i, 120)
     eng = ('English', i, 120)
     tech = ('Technologies', i, 120)
@@ -96,7 +95,8 @@ conn.commit()
 conn.execute('''CREATE TABLE IF NOT EXISTS FICTION_BOOKS
                 (NAME TEXT NOT NULL,
                 AUTHOR TEXT NOT NULL,
-                AMOUNT INT
+                AMOUNT INT,
+                PRIMARY KEY (NAME, AUTHOR)
                 )''')
 conn.commit()
 fiction_books = {'Іван Котляревський': ['ЕНЕЇДА', 'НАТАЛКА-ПОЛТАВКА'], 'Тарас Шевченко': ['КОБЗАР'],
@@ -116,8 +116,17 @@ conn.execute('''CREATE TABLE IF NOT EXISTS ACTIONS
 conn.commit()
 
 
-class Books(ABC):
+class Books:
     subjects = list(set([row[0] for row in student_books]))
+
+    def choose_book_type(self):
+        book_type = input(
+            'If educational - enter something, if fiction - leave this field empty: ')
+        if book_type:
+            book_type = 'edu'
+        else:
+            book_type = 'fic'
+        return book_type
 
     def get_subject_name(self):
         print('Please choose a subject: ')
@@ -128,7 +137,7 @@ class Books(ABC):
         subject_name = self.subjects[entered_number]
         return subject_name
 
-    def is_sb_accessible(self, grade, subject_name):
+    def is_student_book_accessible(self, grade, subject_name):
         subject_books = [i for i in student_books if i[0] == subject_name]
         grade_number = int(''.join(filter(str.isdigit, grade)))
         if grade_number in [i[1] for i in subject_books]:
@@ -136,7 +145,7 @@ class Books(ABC):
         else:
             return False
 
-    def is_sb_available(self, subject, grade):
+    def is_student_book_available(self, subject, grade):
         available_now = 0
         cursor = conn.execute("SELECT * FROM STUDENT_BOOKS")
         for row in cursor:
@@ -145,7 +154,7 @@ class Books(ABC):
         conn.commit()
         return available_now
 
-    def remove_sb_from_library(self, subject, grade, available):
+    def remove_student_book_from_library(self, subject, grade, available):
         if not available:
             print('Sorry, these books are currently out of stock(')
             return False
@@ -163,10 +172,10 @@ class Books(ABC):
     def get_student_book(self, name, position):
         result = False
         subject_name = self.get_subject_name()
-        grade_number = self.is_sb_accessible(position, subject_name)
+        grade_number = self.is_student_book_accessible(position, subject_name)
         if grade_number:
-            available_now = self.is_sb_available(subject_name, grade_number)
-            result = self.remove_sb_from_library(subject_name, grade_number, available_now)
+            available_now = self.is_student_book_available(subject_name, grade_number)
+            result = self.remove_student_book_from_library(subject_name, grade_number, available_now)
             if result:
                 self.add_to_action(name, position, subject_name, '-')
             else:
@@ -175,7 +184,7 @@ class Books(ABC):
             print('You can get student`s books only for the subjects you are studying this year.')
         return result
 
-    def is_tb_accessible(self, subject_name, grade):
+    def is_teacher_book_accessible(self, subject_name, grade):
         subject_books = [i for i in teacher_books if i[0] == subject_name]
         grade_number = int(''.join(filter(str.isdigit, grade)))
         if grade_number in [i[1] for i in subject_books]:
@@ -183,7 +192,7 @@ class Books(ABC):
         else:
             return False
 
-    def is_tb_available(self, subject, grade):
+    def is_teacher_book_available(self, subject, grade):
         available_now = 0
         cursor = conn.execute("SELECT * FROM TEACHER_BOOKS")
         for row in cursor:
@@ -192,7 +201,7 @@ class Books(ABC):
         conn.commit()
         return available_now
 
-    def remove_tb_from_library(self, subject, grade, available):
+    def remove_teacher_book_from_library(self, subject, grade, available):
         if not available:
             print('Sorry, these books are currently out of stock(')
             return False
@@ -206,10 +215,10 @@ class Books(ABC):
         result = False
         grade = input('Which grade do you need a study guide for? ')
         subject_name = self.get_subject_name()
-        grade_number = self.is_tb_accessible(grade, subject_name)
+        grade_number = self.is_teacher_book_accessible(subject_name, grade)
         if grade_number:
-            available_now = self.is_tb_available(subject_name, grade_number)
-            result = self.remove_tb_from_library(subject_name, grade_number, available_now)
+            available_now = self.is_teacher_book_available(subject_name, grade_number)
+            result = self.remove_teacher_book_from_library(subject_name, grade_number, available_now)
             if result:
                 subject_name = subject_name + ', ' + str(grade_number)
                 self.add_to_action(name, position, subject_name, '-')
@@ -249,7 +258,6 @@ class Books(ABC):
         else:
             return False
 
-    @abstractmethod
     def book_picture(self):
         print('████████████████████████████████████████')
         print('████████████░▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄░░░░████████')
@@ -285,8 +293,10 @@ class Books(ABC):
         if not counter:
             conn.execute("INSERT INTO STUDENT_BOOKS VALUES (?, ?, ?)", (subject_name, grade_number, 1))
         self.add_to_action(name, position, subject_name, '+')
+        return True
 
-    def return_teacher_book(self, name, position, grade):
+    def return_teacher_book(self, name, position):
+        grade = input('A study guide for which grade are you returning? ')
         amount, counter = 0, 0
         subject_name = self.get_subject_name()
         grade_number = int(''.join(filter(str.isdigit, grade)))
@@ -298,16 +308,17 @@ class Books(ABC):
                              (row[2] + 1, subject_name, grade_number))
         if not counter:
             conn.execute("INSERT INTO TEACHER_BOOKS VALUES (?, ?, ?)", (subject_name, grade_number, 1))
+        subject_name = subject_name + ', ' + str(grade_number)
         self.add_to_action(name, position, subject_name, '+')
+        return True
 
     def fiction_book_return_check(self):
-        now_available, counter = 0, 0
+        now_available = 0
         author = input('Please enter the author of the book: ').title()
         book_name = input('Please enter the name of the book: ').upper()
         cursor = conn.execute("SELECT * FROM FICTION_BOOKS")
         for row in cursor:
             if (row[0] == book_name) & (row[1] == author):
-                counter += 1
                 now_available = row[2]
         conn.commit()
         now_available += 1
@@ -315,7 +326,7 @@ class Books(ABC):
         return new_values
 
     def return_fiction_book(self, name, position):
-        new_values = self.fiction_book_check()
+        new_values = self.fiction_book_return_check()
         if new_values[2] != 1:
             conn.execute("UPDATE FICTION_BOOKS set AMOUNT = ? where NAME = ? and AUTHOR = ?",
                          (new_values[2], new_values[0], new_values[1]))
@@ -323,9 +334,9 @@ class Books(ABC):
             conn.execute("INSERT INTO FICTION_BOOKS VALUES (?, ?, ?)", new_values)
             conn.commit()
         self.add_to_action(name, position, new_values[0], '+')
+        return True
 
     def show_books_catalogue(self, position, book_type):
-        catalogue = []
         if book_type == 'edu':
             header = ('Subject', 'Grade', 'How many')
             if position == 'teacher':
@@ -343,7 +354,10 @@ class Books(ABC):
         print(tabulate.tabulate([header] + catalogue))
 
 
-class Person(Books):
+class Person:
+
+    def __init__(self):
+        self.books = Books()
 
     def get_name(self):
         name = ''
@@ -368,37 +382,27 @@ class Person(Books):
                 break
         return action
 
-    def choose_book_type(self):
-        book_type = input(
-            'If you`d like to get/return/see an educational book(s) - enter something, if fiction - leave this field '
-            'empty: ')
-        if book_type:
-            book_type = 'edu'
-        else:
-            book_type = 'fic'
-        return book_type
-
     def book_picture(self):
         print('Successful!')
-        super().book_picture()
+        self.books.book_picture()
 
 
 class Student(Person):
 
     def get_book(self, name, position, book_type):
         if book_type == 'edu':
-            if self.get_student_book(name, position):
+            if self.books.get_student_book(name, position):
                 self.book_picture()
         else:
-            if self.get_fiction_book(name, position):
+            if self.books.get_fiction_book(name, position):
                 self.book_picture()
 
     def return_book(self, name, position, book_type):
         if book_type == 'edu':
-            self.return_student_book(name, position)
+            self.books.return_student_book(name, position)
             print('Successful!')
         else:
-            if self.return_fiction_book(name, position):
+            if self.books.return_fiction_book(name, position):
                 print('Successful!')
 
 
@@ -406,52 +410,42 @@ class Teacher(Person):
 
     def get_book(self, name, position, book_type):
         if book_type == 'edu':
-            if self.get_teacher_book(name, position):
+            if self.books.get_teacher_book(name, position):
                 self.book_picture()
         else:
-            if self.get_fiction_book(name, position):
+            if self.books.get_fiction_book(name, position):
                 self.book_picture()
 
     def return_book(self, name, position, book_type):
         if book_type == 'edu':
-            self.return_teacher_book(name, position)
+            self.books.return_teacher_book(name, position)
             print('Successful!')
         else:
-            if self.return_fiction_book(name, position):
+            if self.books.return_fiction_book(name, position):
                 print('Successful!')
 
 
 class Start:
 
     def __init__(self):
-        self.student = None
-        self.teacher = None
-        self.person = Person()
+        self.visitor = Person()
+        self.books_start = Books()
 
     def start(self):
-        position = self.person.get_position()
+        position = self.visitor.get_position()
         if position == 'teacher':
-            self.teacher = Teacher()
-            name = self.teacher.get_name()
-            action = self.teacher.choose_action()
-            book_type = self.teacher.choose_book_type()
-            if action == '+':
-                self.teacher.return_book(name, position, book_type)
-            if action == '-':
-                self.teacher.get_book(name, position, book_type)
-            if action == '=':
-                self.teacher.show_books_catalogue(position, book_type)
+            self.visitor = Teacher()
         else:
-            self.student = Student()
-            name = self.student.get_name()
-            action = self.student.choose_action()
-            book_type = self.student.choose_book_type()
-            if action == '+':
-                self.student.return_book(name, position, book_type)
-            if action == '-':
-                self.student.get_book(name, position, book_type)
-            if action == '=':
-                self.student.show_books_catalogue(position, book_type)
+            self.visitor = Student()
+        name = self.visitor.get_name()
+        action = self.visitor.choose_action()
+        book_type = self.books_start.choose_book_type()
+        if action == '+':
+            self.visitor.return_book(name, position, book_type)
+        if action == '-':
+            self.visitor.get_book(name, position, book_type)
+        if action == '=':
+            self.books_start.show_books_catalogue(position, book_type)
 
 
 if __name__ == '__main__':
