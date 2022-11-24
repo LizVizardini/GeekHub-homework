@@ -3,7 +3,6 @@
 # Можна робити по прикладу банкомату з меню, базою даних і т.д.
 
 import datetime
-from abc import ABC, abstractmethod
 import sqlite3
 import tabulate
 
