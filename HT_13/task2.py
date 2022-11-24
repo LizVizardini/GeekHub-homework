@@ -21,14 +21,13 @@ P.P.S. Вивід не обов’язково оформлювати у виг�
 """
 
 
-import tabulate
-
-
 class Matrix:
     def __init__(self, rows, columns):
         self.rows = rows
         self.columns = columns
-        self.matrix = [0] * rows * columns
+        self.matrix = []
+        for i in range(rows):
+            self.matrix.append([0] * columns)
 
     def fill(self, *numbers):
         if len(numbers) != self.rows * self.columns:
@@ -45,7 +44,10 @@ class Matrix:
         self.matrix = matrix_rows
 
     def print_out(self):
-        return print(tabulate.tabulate(self.matrix))
+        result = ''
+        for i in self.matrix:
+            result += str(i) + '\n'
+        return print(result)
 
     def transpose(self):
         matrix_columns = list(map(list, zip(*self.matrix)))
@@ -55,6 +57,7 @@ class Matrix:
 
 
 matrix = Matrix(3, 2)
+matrix.print_out()
 matrix.fill(1, 2, 3, 4, 5, 6)
 matrix.print_out()
 matrix.transpose()
