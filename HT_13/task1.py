@@ -17,10 +17,26 @@ class Car:
         self._year = year
         self._age = 2022 - self._year
 
+    def __gt__(self, other):
+        return self.age > other.age
+
+    def __lt__(self, other):
+        return self.age < other.age
+
+    def __ge__(self, other):
+        return self.age >= other.age
+
+    def __le__(self, other):
+        return self.age <= other.age
+
+    def __sub__(self, other):
+        return self.age - other.age
+
 
 car1 = Car(2012)
-car1 = car1.age
 car2 = Car(2017)
-car2 = car2.age
 print(car1 > car2)
+print(car1 < car2)
+print(car1 >= car2)
+print(car1 <= car2)
 print(car1 - car2)

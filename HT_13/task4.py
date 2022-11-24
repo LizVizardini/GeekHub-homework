@@ -3,7 +3,14 @@
 
 
 class FirstIndexList:
-    def __init__(self, lst):
+    _lst = []
+
+    @property
+    def lst(self):
+        return self._lst
+
+    @lst.setter
+    def lst(self, lst):
         self._lst = lst
 
     def __getitem__(self, index):
@@ -14,8 +21,17 @@ class FirstIndexList:
         return self._lst[index - 1]
 
 
-some_list = FirstIndexList([1, 2, 3, 4, 5])
-print(some_list[1])
-print(some_list[-1])
-print(some_list[-2])
-print(some_list[0])
+def test(iterable_sequence):
+    some_list = FirstIndexList()
+    some_list.lst = iterable_sequence
+
+    print(some_list[1])
+    print(some_list[-1])
+    print(some_list[-2])
+    print('')
+
+
+test([1, 2, 3, 4, 5])
+test(tuple([1, 2, 3, 4, 5]))
+test(range(1, 6))
+test('12345')

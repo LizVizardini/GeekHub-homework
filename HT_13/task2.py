@@ -30,14 +30,11 @@ class Matrix:
         self.columns = columns
         self.matrix = [0] * rows * columns
 
-    def fill(self):
-        while True:
-            matrix_elements = input('Please input space-separated matrix elements by order: ').split()
-            if len(matrix_elements) != len(self.matrix):
-                print(f'{len(self.matrix)} elements must be entered. You`ve entered {len(matrix_elements)}. Try again.')
-            else:
-                break
-        matrix_elements = [float(i) for i in matrix_elements]
+    def fill(self, *numbers):
+        if len(numbers) != self.rows * self.columns:
+            raise TypeError(f'fill() takes {self.rows * self.columns} positional arguments but {len(numbers)} were '
+                            f'given.')
+        matrix_elements = [float(i) for i in numbers]
         matrix_rows = []
         lst = []
         for i in matrix_elements:
@@ -58,7 +55,7 @@ class Matrix:
 
 
 matrix = Matrix(3, 2)
-matrix.fill()
+matrix.fill(1, 2, 3, 4, 5, 6)
 matrix.print_out()
 matrix.transpose()
 matrix.print_out()

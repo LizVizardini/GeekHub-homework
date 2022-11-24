@@ -47,7 +47,11 @@ class Transaction:
 
     @property
     def usd(self):
-        return round(self._amount * self._usd_conversion_rate, 2)
+        if self._currency.upper() != 'USD':
+            result = round(self._amount, 2)
+        else:
+            result = round(self._amount * self._usd_conversion_rate, 2)
+        return result
 
 
 def show_all_info(transaction):
