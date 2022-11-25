@@ -29,14 +29,10 @@ class Matrix:
         for i in range(rows):
             self.matrix.append([0] * columns)
 
-    def fill(self, *numbers):
-        if len(numbers) != self.rows * self.columns:
-            raise TypeError(f'fill() takes {self.rows * self.columns} positional arguments but {len(numbers)} were '
-                            f'given.')
-        matrix_elements = [float(i) for i in numbers]
+    def fill(self):
         matrix_rows = []
         lst = []
-        for i in matrix_elements:
+        for i in range(1, self.rows * self.columns + 1):
             lst.append(i)
             if len(lst) == self.columns:
                 matrix_rows.append(lst)
@@ -58,7 +54,7 @@ class Matrix:
 
 matrix = Matrix(3, 2)
 matrix.print_out()
-matrix.fill(1, 2, 3, 4, 5, 6)
+matrix.fill()
 matrix.print_out()
 matrix.transpose()
 matrix.print_out()
